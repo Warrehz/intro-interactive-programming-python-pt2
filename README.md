@@ -41,3 +41,16 @@ numbers = [1, 2, 3, 4, 5];
 for num in numbers:
   print num;
 ```
+
+### Dictionaries
+
+* lets you map keys to values - similar to JavaScript objects
+```python
+dict1 = {1:2, 2:5, 3:9}
+
+dict1[2] => 5
+
+dict2 = {"a":1, "b":2, "c":3}
+
+dict2["b"] => 2
+```
