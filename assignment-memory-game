@@ -1,0 +1,44 @@
+# implementation of card game - Memory
+
+import simplegui
+import random
+
+card_list = ["0", "0", "1", "1", "2", "2", "3", "3", "4", "4", "5", "5", "6", "6", "7", "7"]
+random.shuffle(card_list)
+exposed_list = ["false", "false", "false", "false", "true", "false", "false", "false", "false", "false", "false", "false", "false", "false", "false", "false"]
+
+# helper function to initialize globals
+def new_game():
+    pass
+
+
+# define event handlers
+def mouseclick(pos):
+    # add game state logic here
+    pass
+
+
+# cards are logically 50x100 pixels in size
+def draw(canvas):
+    for i in range(0, 16):
+        if exposed_list[i] == "false":
+            canvas.draw_polygon([[0 + i * 50, 0], [50 + i * 50, 0], [50 + i * 50, 100], [0 + i * 50, 100]], 1, "Green", "Green")
+        else:
+            canvas.draw_text(card_list[i], (20 + (i * 50 ) , 55), 20, "White")
+
+
+# create frame and add a button and labels
+frame = simplegui.create_frame("Memory", 800, 100)
+frame.add_button("Reset", new_game)
+label = frame.add_label("Turns = 0")
+
+# register event handlers
+frame.set_mouseclick_handler(mouseclick)
+frame.set_draw_handler(draw)
+
+# get things rolling
+new_game()
+frame.start()
+
+
+# Always remember to review the grading rubric
