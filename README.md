@@ -57,8 +57,11 @@ dict2["b"] => 2
 
 ### Object-Oriented Programming & Classes
 
+* object-oriented programming encapsulates behavior, making it simple to change only what needs to be altered
 * each data types have built in functions called methods
 * classes allow you to create an object with unique methods
+* all classes should have an __init__ and __str__ method defined
+* "self" is never passed as an argument
 ```python
 class Character:
     def __init__(self, name, initial_health):
