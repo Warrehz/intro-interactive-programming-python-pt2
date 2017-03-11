@@ -54,3 +54,37 @@ dict2 = {"a":1, "b":2, "c":3}
 
 dict2["b"] => 2
 ```
+
+### Object-Oriented Programming & Classes
+
+* each data types have built in functions called methods
+* classes allow you to create an object with unique methods
+```python
+class Character:
+    def __init__(self, name, initial_health):
+        self.name = name
+        self.health = initial_health
+        self.inventory = []
+
+    def __str__(self):
+        s  = "Name: " + self.name
+        s += " Health: " + str(self.health)
+        s += " Inventory: " + str(self.inventory)
+        return s
+
+    def grab(self, item):
+        self.inventory.append(item)
+
+    def get_health(self):
+        return self.health
+
+def example():
+    me = Character("Bob", 20)
+    print str(me)
+    me.grab("pencil")
+    me.grab("paper")
+    print str(me)
+    print "Health:", me.get_health()
+
+example()
+```
