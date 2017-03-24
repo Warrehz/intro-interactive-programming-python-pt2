@@ -14,7 +14,7 @@ card_back = simplegui.load_image("http://storage.googleapis.com/codeskulptor-ass
 
 # initialize some useful global variables
 in_play = False
-outcome = ""
+outcome = "Hit or Stand?"
 score = 0
 
 # define globals for cards
@@ -26,6 +26,7 @@ VALUES = {'A':1, '2':2, '3':3, '4':4, '5':5, '6':6, '7':7, '8':8, '9':9, 'T':10,
 # define card class
 class Card:
     def __init__(self, suit, rank):
+        self.show = True
         if (suit in SUITS) and (rank in RANKS):
             self.suit = suit
             self.rank = rank
@@ -44,9 +45,14 @@ class Card:
         return self.rank
 
     def draw(self, canvas, pos):
-        card_loc = (CARD_CENTER[0] + CARD_SIZE[0] * RANKS.index(self.rank),
-                    CARD_CENTER[1] + CARD_SIZE[1] * SUITS.index(self.suit))
-        canvas.draw_image(card_images, card_loc, CARD_SIZE, [pos[0] + CARD_CENTER[0], pos[1] + CARD_CENTER[1]], CARD_SIZE)
+        if self.show:
+            card_loc = (CARD_CENTER[0] + CARD_SIZE[0] * RANKS.index(self.rank),
+                        CARD_CENTER[1] + CARD_SIZE[1] * SUITS.index(self.suit))
+            canvas.draw_image(card_images, card_loc, CARD_SIZE, [pos[0] + CARD_CENTER[0], pos[1] + CARD_CENTER[1]], CARD_SIZE)
+        else:
+            canvas.draw_image(card_back, (CARD_CENTER[0], CARD_CENTER[1]), CARD_SIZE, [100 + CARD_CENTER[0], 75 + CARD_CENTER[1]], CARD_SIZE)
+
+
 
 # define hand class
 class Hand:
@@ -70,14 +76,16 @@ class Hand:
             card_total += VALUES.get(card_rank)
             if card_rank == 'A':
                 num_of_aces += 1
-        ace_as_ten_total = card_total + (10 * num_of_aces) - num_of_aces
+        ace_as_ten_total = card_total + (10 * num_of_aces)
         if ace_as_ten_total <= 21:
-            return ace_as_ten_total
-        else:
-            return card_total
+            card_total = ace_as_ten_total
+        return card_total
 
     def draw(self, canvas, pos):
-        pass	# draw a hand on the canvas, use the draw method for cards
+        i = 0
+        for c in self.cards:
+            c.draw(canvas, [pos[0] + i, pos[1]])
+            i += 72
 
 
 # define deck class
@@ -103,7 +111,10 @@ class Deck:
 
 #define event handlers for buttons
 def deal():
-    global outcome, in_play, my_hand, my_deck, dealer_hand
+    global outcome, in_play, my_hand, my_deck, dealer_hand, score
+
+    if in_play:
+        score -= 1
 
     my_deck = Deck()
     my_hand = Hand()
@@ -117,36 +128,52 @@ def deal():
     dealer_hand.add_card(my_deck.deal_card())
     print "Dealer " + str(dealer_hand)
 
+    dealer_hand.cards[0].show = False
     in_play = True
+    outcome = "Hit or Stand?"
 
 def hit():
-
+    global outcome, score, in_play
     if in_play:
-        if my_hand.get_value() <= 21:
-            my_hand.add_card(my_deck.deal_card())
-            print my_hand
-            if my_hand.get_value() > 21:
-                print "YOU BUSTED"
+        my_hand.add_card(my_deck.deal_card())
+
+        if my_hand.get_value() > 21:
+            outcome = "YOU LOSE, YOU BUSTED! NEW DEAL?"
+            score -= 1
+            in_play = False
+            dealer_hand.cards[0].show = True
 
     # if the hand is in play, hit the player
 
     # if busted, assign a message to outcome, update in_play and score
 
 def stand():
-    if in_play:
-        if my_hand.get_value() > 21:
-            print "YOU BUSTED"
-        else:
-            while dealer_hand.get_value() < 17:
-                dealer_hand.add_card(my_deck.deal_card())
-        if dealer_hand.get_value() > 21:
-            print "DEALER BUSTED"
-        elif dealer_hand.get_value() == my_hand.get_value():
-            print "DEALER WINS"
-        elif my_hand.get_value() > dealer_hand.get_value():
-            print "YOU WIN"
-        else:
-            print "DEALER WINS"
+    global outcome, score, in_play
+
+    if not in_play:
+        return
+
+    dealer_hand.cards[0].show = True
+
+    while dealer_hand.get_value() < 17:
+        dealer_hand.add_card(my_deck.deal_card())
+
+    if my_hand.get_value() > 21:
+        outcome = "YOU LOSE, YOU BUSTED! NEW DEAL?"
+        score -= 1
+    elif dealer_hand.get_value() > 21:
+        outcome = "YOU WIN, DEALER BUSTED! NEW DEAL?"
+        score += 1
+    elif dealer_hand.get_value() == my_hand.get_value():
+        outcome = "TIE, DEALER WINS! NEW DEAL?"
+        score -= 1
+    elif my_hand.get_value() > dealer_hand.get_value():
+        outcome = "YOU WIN! NEW DEAL?"
+        score += 1
+    else:
+        outcome = "DEALER WINS! NEW DEAL?"
+        score -= 1
+    in_play = False
 
     # if hand is in play, repeatedly hit dealer until his hand has value 17 or more
 
@@ -154,10 +181,16 @@ def stand():
 
 # draw handler
 def draw(canvas):
-    # test to make sure that card.draw works, replace with your code below
+    global outcome
+    canvas.draw_text("Blackjack", (10, 25), 24, "Black")
+    canvas.draw_text(outcome, (50, 300), 40, "Red")
+    canvas.draw_text(("Score: " + str(score)), (400, 25), 24, "Black")
+    my_hand.draw(canvas, [100, 400])
 
-    card = Card("S", "A")
-    card.draw(canvas, [300, 300])
+    if in_play:
+        dealer_hand.draw(canvas, [100, 75])
+    else:
+        dealer_hand.draw(canvas, [100, 75])
 
 
 # initialization frame
