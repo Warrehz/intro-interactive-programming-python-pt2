@@ -9,7 +9,6 @@ HEIGHT = 600
 score = 0
 lives = 3
 time = 0
-thrust = 1
 
 class ImageInfo:
     def __init__(self, center, size, radius = 0, lifespan = None, animated = False):
@@ -164,10 +163,12 @@ class Sprite:
             sound.play()
 
     def draw(self, canvas):
-        canvas.draw_circle(self.pos, self.radius, 1, "Red", "Red")
+        canvas.draw_image(self.image, self.image_center, self.image_size, self.pos, self.image_size, self.angle)
 
     def update(self):
-        pass
+        self.angle += self.angle_vel
+        self.pos[0] = (self.pos[0] + self.vel[0]) % WIDTH
+        self.pos[1] = (self.pos[1] + self.vel[1]) % HEIGHT
 
 
 def draw(canvas):
@@ -194,21 +195,22 @@ def draw(canvas):
 
 # timer handler that spawns a rock
 def rock_spawner():
-    pass
+    global a_rock
+    a_rock = Sprite([random.randint(1, WIDTH), random.randint(1, HEIGHT)], [random.randint(-3, 3), random.randint(-3, 3)], 0, (random.randrange(-1, 2, 2) * 0.05), asteroid_image, asteroid_info)
 
 # initialize frame
 frame = simplegui.create_frame("Asteroids", WIDTH, HEIGHT)
 
 # initialize ship and two sprites
 my_ship = Ship([WIDTH / 2, HEIGHT / 2], [0, 0], 0, ship_image, ship_info)
-a_rock = Sprite([WIDTH / 3, HEIGHT / 3], [1, 1], 0, 0, asteroid_image, asteroid_info)
+a_rock = Sprite([WIDTH / 3, HEIGHT / 3], [0, 0], 0, 0, asteroid_image, asteroid_info)
 a_missile = Sprite([2 * WIDTH / 3, 2 * HEIGHT / 3], [-1,1], 0, 0, missile_image, missile_info, missile_sound)
 
 # register handlers
 frame.set_draw_handler(draw)
 frame.set_keydown_handler(keydown)
 frame.set_keyup_handler(keyup)
-timer = simplegui.create_timer(1000.0, rock_spawner)
+timer = simplegui.create_timer(10000.0, rock_spawner)
 
 # get things rolling
 timer.start()
