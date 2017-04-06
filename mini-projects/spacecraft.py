@@ -9,6 +9,7 @@ HEIGHT = 600
 score = 0
 lives = 3
 time = 0
+thrust = 1
 
 class ImageInfo:
     def __init__(self, center, size, radius = 0, lifespan = None, animated = False):
@@ -81,19 +82,23 @@ explosion_sound = simplegui.load_sound("http://commondatastorage.googleapis.com/
 
 # event handlers
 def keydown(key):
+    global thrust
     if key == simplegui.KEY_MAP['left']:
         my_ship.turn_left()
     if key == simplegui.KEY_MAP['right']:
         my_ship.turn_right()
     if key == simplegui.KEY_MAP['up']:
         my_ship.thrust = True
+        ship_thrust_sound.play()
 def keyup(key):
+    global thrust
     if key == simplegui.KEY_MAP['left']:
         my_ship.angle_vel = 0
     if key == simplegui.KEY_MAP['right']:
         my_ship.angle_vel = 0
     if key == simplegui.KEY_MAP['up']:
         my_ship.thrust = False
+        ship_thrust_sound.rewind()
 
 # helper functions to handle transformations
 def angle_to_vector(ang):
@@ -123,9 +128,16 @@ class Ship:
             canvas.draw_image(self.image, self.image_center, self.image_size, self.pos, self.image_size, self.angle)
 
     def update(self):
-        self.pos[0] += self.vel[0]
-        self.pos[1] += self.vel[1]
+        rate = 0.075
+        self.pos[0] = (self.pos[0] + self.vel[0]) % WIDTH
+        self.pos[1] = (self.pos[1] + self.vel[1]) % HEIGHT
         self.angle += self.angle_vel
+        self.vel[0] *= (1 - rate/15)
+        self.vel[1] *= (1 - rate/15)
+        if self.thrust:
+            direction = angle_to_vector(self.angle)
+            self.vel[0] += rate * direction[0]
+            self.vel[1] += rate * direction[1]
 
     def turn_left(self):
         self.angle_vel = -0.075
