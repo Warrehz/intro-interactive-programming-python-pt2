@@ -85,12 +85,15 @@ def keydown(key):
         my_ship.turn_left()
     if key == simplegui.KEY_MAP['right']:
         my_ship.turn_right()
-
+    if key == simplegui.KEY_MAP['up']:
+        my_ship.thrust = True
 def keyup(key):
     if key == simplegui.KEY_MAP['left']:
         my_ship.angle_vel = 0
     if key == simplegui.KEY_MAP['right']:
         my_ship.angle_vel = 0
+    if key == simplegui.KEY_MAP['up']:
+        my_ship.thrust = False
 
 # helper functions to handle transformations
 def angle_to_vector(ang):
@@ -114,7 +117,10 @@ class Ship:
         self.radius = info.get_radius()
 
     def draw(self,canvas):
-        canvas.draw_image(self.image, self.image_center, self.image_size, self.pos, self.image_size, self.angle)
+        if self.thrust:
+            canvas.draw_image(self.image, (self.image_center[0] + 90, self.image_center[1]), self.image_size, self.pos, self.image_size, self.angle)
+        else:
+            canvas.draw_image(self.image, self.image_center, self.image_size, self.pos, self.image_size, self.angle)
 
     def update(self):
         self.pos[0] += self.vel[0]
@@ -126,7 +132,6 @@ class Ship:
 
     def turn_right(self):
         self.angle_vel = 0.075
-
 
 # Sprite class
 class Sprite:
