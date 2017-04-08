@@ -89,6 +89,9 @@ def keydown(key):
     if key == simplegui.KEY_MAP['up']:
         my_ship.thrust = True
         ship_thrust_sound.play()
+    if key == simplegui.KEY_MAP['space']:
+        my_ship.shoot()
+        missile_sound.play()
 def keyup(key):
     global thrust
     if key == simplegui.KEY_MAP['left']:
@@ -98,6 +101,8 @@ def keyup(key):
     if key == simplegui.KEY_MAP['up']:
         my_ship.thrust = False
         ship_thrust_sound.rewind()
+    if key == simplegui.KEY_MAP['space']:
+        missile_sound.rewind()
 
 # helper functions to handle transformations
 def angle_to_vector(ang):
@@ -144,6 +149,13 @@ class Ship:
     def turn_right(self):
         self.angle_vel = 0.075
 
+    def shoot(self):
+        global a_missile
+        rate = angle_to_vector(self.angle)
+        m_position = [self.pos[0] + self.radius * rate[0], self.pos[1] + self.radius * rate[1]]
+        m_velocity = [self.vel[0] + 5 * rate[0], self.vel[1] + 5 * rate[1]]
+        a_missile = Sprite(m_position, m_velocity, self.angle, 0, missile_image, missile_info, missile_sound)
+
 # Sprite class
 class Sprite:
     def __init__(self, pos, vel, ang, ang_vel, image, info, sound = None):
@@ -172,7 +184,7 @@ class Sprite:
 
 
 def draw(canvas):
-    global time
+    global time, score, lives
 
     # animiate background
     time += 1
@@ -193,6 +205,10 @@ def draw(canvas):
     a_rock.update()
     a_missile.update()
 
+    #score and lives
+    canvas.draw_text(('Score: ' + str(score)), (700, 25), 20, 'White')
+    canvas.draw_text(('Lives: ' + str(lives)), (25, 25), 20, 'White')
+
 # timer handler that spawns a rock
 def rock_spawner():
     global a_rock
@@ -210,7 +226,7 @@ a_missile = Sprite([2 * WIDTH / 3, 2 * HEIGHT / 3], [-1,1], 0, 0, missile_image,
 frame.set_draw_handler(draw)
 frame.set_keydown_handler(keydown)
 frame.set_keyup_handler(keyup)
-timer = simplegui.create_timer(10000.0, rock_spawner)
+timer = simplegui.create_timer(1000.0, rock_spawner)
 
 # get things rolling
 timer.start()
