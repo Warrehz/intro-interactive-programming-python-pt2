@@ -1,4 +1,4 @@
-# implementation of Spaceship - program template for RiceRocks
+# implementation Rice Rocks - an asteroids game using codeskulptor.org
 import simplegui
 import math
 import random
@@ -11,6 +11,7 @@ lives = 3
 time = 0
 started = False
 
+# class to keep track of information for graphics
 class ImageInfo:
     def __init__(self, center, size, radius = 0, lifespan = None, animated = False):
         self.center = center
@@ -37,15 +38,13 @@ class ImageInfo:
     def get_animated(self):
         return self.animated
 
-
 # art assets created by Kim Lathrop, may be freely re-used in non-commercial projects, please credit Kim
 
-# debris images - debris1_brown.png, debris2_brown.png, debris3_brown.png, debris4_brown.png
-#                 debris1_blue.png, debris2_blue.png, debris3_blue.png, debris4_blue.png, debris_blend.png
+# debris image
 debris_info = ImageInfo([320, 240], [640, 480])
 debris_image = simplegui.load_image("http://commondatastorage.googleapis.com/codeskulptor-assets/lathrop/debris2_blue.png")
 
-# nebula images - nebula_brown.png, nebula_blue.png
+# nebula image
 nebula_info = ImageInfo([400, 300], [800, 600])
 nebula_image = simplegui.load_image("http://commondatastorage.googleapis.com/codeskulptor-assets/lathrop/nebula_blue.f2014.png")
 
@@ -57,29 +56,24 @@ splash_image = simplegui.load_image("http://commondatastorage.googleapis.com/cod
 ship_info = ImageInfo([45, 45], [90, 90], 35)
 ship_image = simplegui.load_image("http://commondatastorage.googleapis.com/codeskulptor-assets/lathrop/double_ship.png")
 
-# missile image - shot1.png, shot2.png, shot3.png
+# missile image
 missile_info = ImageInfo([5,5], [10, 10], 3, 50)
 missile_image = simplegui.load_image("http://commondatastorage.googleapis.com/codeskulptor-assets/lathrop/shot2.png")
 
-# asteroid images - asteroid_blue.png, asteroid_brown.png, asteroid_blend.png
+# asteroid image
 asteroid_info = ImageInfo([45, 45], [90, 90], 40)
 asteroid_image = simplegui.load_image("http://commondatastorage.googleapis.com/codeskulptor-assets/lathrop/asteroid_blue.png")
 
-# animated explosion - explosion_orange.png, explosion_blue.png, explosion_blue2.png, explosion_alpha.png
+# animated explosion
 explosion_info = ImageInfo([64, 64], [128, 128], 17, 24, True)
 explosion_image = simplegui.load_image("http://commondatastorage.googleapis.com/codeskulptor-assets/lathrop/explosion_alpha.png")
 
-# sound assets purchased from sounddogs.com, please do not redistribute
-# .ogg versions of sounds are also available, just replace .mp3 by .ogg
+# sounds
 soundtrack = simplegui.load_sound("http://commondatastorage.googleapis.com/codeskulptor-assets/sounddogs/soundtrack.mp3")
 missile_sound = simplegui.load_sound("http://commondatastorage.googleapis.com/codeskulptor-assets/sounddogs/missile.mp3")
 missile_sound.set_volume(.5)
 ship_thrust_sound = simplegui.load_sound("http://commondatastorage.googleapis.com/codeskulptor-assets/sounddogs/thrust.mp3")
 explosion_sound = simplegui.load_sound("http://commondatastorage.googleapis.com/codeskulptor-assets/sounddogs/explosion.mp3")
-
-# alternative upbeat soundtrack by composer and former IIPP student Emiel Stopler
-# please do not redistribute without permission from Emiel at http://www.filmcomposer.nl
-#soundtrack = simplegui.load_sound("https://storage.googleapis.com/codeskulptor-assets/ricerocks_theme.mp3")
 
 
 # helper functions to handle transformations
@@ -96,8 +90,6 @@ def process_sprite_group(group, canvas):
         if sprite.update():
             group.remove(sprite)
 
-
-
 def group_collide(group, other_object):
     collisions = 0
     for sprite in set(group):
@@ -106,8 +98,19 @@ def group_collide(group, other_object):
             collisions += 1
     return collisions
 
+def group_group_collide(group1, group2):
+    global score
+    collisions = 0
+    for sprite in set(group1):
+        number = group_collide(group2, sprite)
+        if number > 0:
+            group1.remove(sprite)
+            score += number
+        collisions += number
+    return collisions
 
-# Ship class
+
+# ship class
 class Ship:
 
     def __init__(self, pos, vel, angle, image, info):
@@ -128,7 +131,6 @@ class Ship:
         else:
             canvas.draw_image(self.image, self.image_center, self.image_size,
                               self.pos, self.image_size, self.angle)
-        # canvas.draw_circle(self.pos, self.radius, 1, "White", "White")
 
     def update(self):
         # update angle
@@ -250,7 +252,7 @@ def keyup(key):
 
 # mouseclick handlers that reset UI and conditions whether splash image is drawn
 def click(pos):
-    global started
+    global started, lives, score
     center = [WIDTH / 2, HEIGHT / 2]
     size = splash_info.get_size()
     inwidth = (center[0] - size[0] / 2) < pos[0] < (center[0] + size[0] / 2)
@@ -259,7 +261,7 @@ def click(pos):
         started = True
 
 def draw(canvas):
-    global time, started, lives
+    global time, started, lives, score, my_ship, rock_group, missile_group
 
     # animiate background
     time += 1
@@ -280,6 +282,7 @@ def draw(canvas):
     my_ship.draw(canvas)
     process_sprite_group(rock_group, canvas)
     process_sprite_group(missile_group, canvas)
+    group_group_collide(rock_group, missile_group)
 
     # update ship and sprites
     my_ship.update()
@@ -289,7 +292,14 @@ def draw(canvas):
         canvas.draw_image(splash_image, splash_info.get_center(),
                           splash_info.get_size(), [WIDTH / 2, HEIGHT / 2],
                           splash_info.get_size())
+        score = 0
+        lives = 3
+        my_ship = Ship([WIDTH / 2, HEIGHT / 2], [0, 0], 0, ship_image, ship_info)
+        rock_group = set([])
+        missile_group = set([])
 
+    if lives <= 0:
+        started = False
     # decrease lives if ship hits rock
     if group_collide(rock_group, my_ship):
         lives -= 1
@@ -301,7 +311,7 @@ def rock_spawner():
     rock_vel = [random.random() * .6 - .3, random.random() * .6 - .3]
     rock_avel = random.random() * .2 - .1
     a_rock = Sprite(rock_pos, rock_vel, 0, rock_avel, asteroid_image, asteroid_info)
-    if len(rock_group) < 12:
+    if started and len(rock_group) < 12:
         rock_group.add(a_rock)
 
 # initialize stuff
@@ -311,7 +321,6 @@ frame = simplegui.create_frame("Asteroids", WIDTH, HEIGHT)
 my_ship = Ship([WIDTH / 2, HEIGHT / 2], [0, 0], 0, ship_image, ship_info)
 rock_group = set([])
 missile_group = set([])
-
 
 # register handlers
 frame.set_keyup_handler(keyup)
