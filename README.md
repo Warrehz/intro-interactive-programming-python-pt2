@@ -91,3 +91,12 @@ def example():
 
 example()
 ```
+
+### Sets
+
+* allows you to keep track of collections of data
+* they are an unordered collection of data with no duplicates
+```python
+names = set(["Mical", "Myranda", "Biscuit"])
+print names
+```
