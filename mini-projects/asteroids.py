@@ -89,10 +89,14 @@ def angle_to_vector(ang):
 def dist(p, q):
     return math.sqrt((p[0] - q[0]) ** 2 + (p[1] - q[1]) ** 2)
 
-def process_sprite_group(set, canvas):
-    for sprite in set:
+def process_sprite_group(group, canvas):
+    for sprite in set(group):
         sprite.update()
         sprite.draw(canvas)
+        if sprite.update():
+            group.remove(sprite)
+
+
 
 def group_collide(group, other_object):
     collisions = 0
@@ -163,6 +167,7 @@ class Ship:
         missile_pos = [self.pos[0] + self.radius * forward[0], self.pos[1] + self.radius * forward[1]]
         missile_vel = [self.vel[0] + 6 * forward[0], self.vel[1] + 6 * forward[1]]
         a_missile = Sprite(missile_pos, missile_vel, self.angle, 0, missile_image, missile_info, missile_sound)
+        missile_group.add(a_missile)
 
     def get_position(self):
         return self.pos
@@ -199,6 +204,13 @@ class Sprite:
         # update position
         self.pos[0] = (self.pos[0] + self.vel[0]) % WIDTH
         self.pos[1] = (self.pos[1] + self.vel[1]) % HEIGHT
+
+        # update age
+        self.age += 1
+        if self.age >= self.lifespan:
+            return True
+        else:
+            return False
 
     def get_position(self):
         return self.pos
@@ -267,11 +279,10 @@ def draw(canvas):
     # draw ship and sprites
     my_ship.draw(canvas)
     process_sprite_group(rock_group, canvas)
-    a_missile.draw(canvas)
+    process_sprite_group(missile_group, canvas)
 
     # update ship and sprites
     my_ship.update()
-    a_missile.update()
 
     # draw splash screen if not started
     if not started:
@@ -299,7 +310,7 @@ frame = simplegui.create_frame("Asteroids", WIDTH, HEIGHT)
 # initialize ship and two sprites
 my_ship = Ship([WIDTH / 2, HEIGHT / 2], [0, 0], 0, ship_image, ship_info)
 rock_group = set([])
-a_missile = Sprite([2 * WIDTH / 3, 2 * HEIGHT / 3], [-1,1], 0, 0, missile_image, missile_info, missile_sound)
+missile_group = set([])
 
 
 # register handlers
